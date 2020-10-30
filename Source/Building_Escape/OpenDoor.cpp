@@ -3,6 +3,10 @@
 
 #include "OpenDoor.h"
 #include "GameFramework/Actor.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+
+
 // Sets default values for this component's properties
 UOpenDoor::UOpenDoor()
 {
@@ -30,6 +34,8 @@ void UOpenDoor::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s actor has the OpenDoor component on it, but no pressure plate set!"), *GetOwner()->GetName())
 	}
+
+	ActorThatOpensDoor = GetWorld()->GetFirstPlayerController()->GetPawn();
 }
 
 
@@ -41,6 +47,7 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	UE_LOG(LogTemp, Warning, TEXT("Current actor rotation is: %s"), *GetOwner()->GetActorRotation().ToString());
 	UE_LOG(LogTemp, Warning, TEXT("Current yaw of the actor rotation is: %f"), CurrentYaw);
 
+	// checking if PressurePlate is true helps to avoid unreal from crashing due to null pointer.
 	if (PressurePlate && PressurePlate->IsOverlappingActor(ActorThatOpensDoor))
 	{
 		OpenDoor(DeltaTime);

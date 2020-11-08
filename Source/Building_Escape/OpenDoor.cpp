@@ -44,8 +44,8 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	UE_LOG(LogTemp, Warning, TEXT("Current actor rotation is: %s"), *GetOwner()->GetActorRotation().ToString());
-	UE_LOG(LogTemp, Warning, TEXT("Current yaw of the actor rotation is: %f"), CurrentYaw);
+	UE_LOG(LogTemp, Warning, TEXT("Current rotation of %s is: %s"), *GetOwner()->GetName(), *GetOwner()->GetActorRotation().ToString());
+	UE_LOG(LogTemp, Warning, TEXT("Current yaw (of rotation) of %s is: %f"), *GetOwner()->GetName(), CurrentYaw);
 
 	// checking if PressurePlate is true helps to avoid unreal from crashing due to null pointer.
 	if (PressurePlate && PressurePlate->IsOverlappingActor(ActorThatOpensDoor))

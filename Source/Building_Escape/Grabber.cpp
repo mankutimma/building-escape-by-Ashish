@@ -56,5 +56,25 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 		0.f,
 		5.f
 	);
+
+	FHitResult Hit;
+
+	// Ray casting and return true for the first blocking hit
+	GetWorld()->LineTraceSingleByObjectType(
+		OUT Hit,
+		PlayerViewPointLocation,
+		LineTraceEnd,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
+		FCollisionQueryParams(FName(TEXT("")), false, GetOwner()) // ignore the owner because the cast out ray first hits the player
+		);
+
+	// see what it hits
+	AActor* HitActor = Hit.GetActor();
+
+	// avoid undefined behavior when doing *HitActor->GetName() due to null pointer 
+	if (HitActor)
+	{
+		UE_LOG(LogTemp, Error, TEXT("The line trace has hit %s"), *HitActor->GetName());
+	}
 }
 

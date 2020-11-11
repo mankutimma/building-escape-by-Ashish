@@ -30,4 +30,8 @@ private:
 	float Reach = 175.f;
 
 	UPhysicsHandleComponent* PhysicsHandle = nullptr;
+
+	UInputComponent* PlayerInputComponent = nullptr;
+
+	void Grab();
 };

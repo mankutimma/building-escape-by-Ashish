@@ -33,12 +33,29 @@ void UGrabber::BeginPlay()
 	// Protection from null pointer
 	if (PhysicsHandle)
 	{
-
+		// physics handle found
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("No physics handle component found on %s"), *GetOwner()->GetName());
 	}
+
+	PlayerInputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
+	if (PlayerInputComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player input component found on %s"), *GetOwner()->GetName());
+		PlayerInputComponent->BindAction("Grab", EInputEvent::IE_Pressed, this, &UGrabber::Grab);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player input component MISSING on %s"), *GetOwner()->GetName());
+	}
+}
+
+
+void UGrabber::Grab()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grabber press"));
 }
 
 
@@ -53,7 +70,7 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 		OUT PlayerViewPointLocation,
 		OUT PlayerViewPointRotation
 	);
-	UE_LOG(LogTemp, Warning, TEXT("Player location is %s and player rotation is %s"), *PlayerViewPointLocation.ToString(), *PlayerViewPointRotation.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("Player location is %s and player rotation is %s"), *PlayerViewPointLocation.ToString(), *PlayerViewPointRotation.ToString());
 
 	FVector LineTraceDirection = PlayerViewPointRotation.Vector();
 	FVector LineTraceEnd =  PlayerViewPointLocation + LineTraceDirection * Reach;

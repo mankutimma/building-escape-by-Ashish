@@ -26,7 +26,19 @@ void UGrabber::BeginPlay()
 	Super::BeginPlay();
 
 	UE_LOG(LogTemp, Warning, TEXT("Grabber reporting to duty!"));
-	
+
+	// Checking for physics handle component
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+
+	// Protection from null pointer
+	if (PhysicsHandle)
+	{
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("No physics handle component found on %s"), *GetOwner()->GetName());
+	}
 }
 
 
@@ -71,7 +83,7 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 	// see what it hits
 	AActor* HitActor = Hit.GetActor();
 
-	// avoid undefined behavior when doing *HitActor->GetName() due to null pointer 
+	// avoid undefined behavior (ue4 crashing) when doing *HitActor->GetName() due to null pointer 
 	if (HitActor)
 	{
 		UE_LOG(LogTemp, Error, TEXT("The line trace has hit %s"), *HitActor->GetName());

@@ -27,6 +27,13 @@ void UGrabber::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("Grabber reporting to duty!"));
 
+	FindPhysicsHandle();
+	SetupInputComponent();
+}
+
+
+void UGrabber::FindPhysicsHandle()
+{
 	// Checking for physics handle component
 	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
 
@@ -39,14 +46,17 @@ void UGrabber::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("No physics handle component found on %s"), *GetOwner()->GetName());
 	}
+}
 
+
+void UGrabber::SetupInputComponent()
+{
 	PlayerInputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
 	if (PlayerInputComponent) // true even if input keys are not mentioned under access mappings in projectsettings->engine->input. wth?
-	{
+	{	
 		UE_LOG(LogTemp, Warning, TEXT("Player input component found on %s"), *GetOwner()->GetName());
 		PlayerInputComponent->BindAction("GrabAndRelease", EInputEvent::IE_Released, this, &UGrabber::Release);
 		PlayerInputComponent->BindAction("GrabAndRelease", EInputEvent::IE_Pressed, this, &UGrabber::Grab);
-		
 	}
 	else
 	{
@@ -58,20 +68,24 @@ void UGrabber::BeginPlay()
 void UGrabber::Grab()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grabber press"));
+
+	// If we hit something, then attach the physics handle
+	// TODO: Attach physics handle
+
+	GetFirstPhysicsBodyInReach();
 }
 
 
 void UGrabber::Release()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grabber released"));
+
+	// TODO: remove/release the physics handle
 }
 
 
-// Called every frame
-void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+FHitResult UGrabber::GetFirstPhysicsBodyInReach() const
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
@@ -113,5 +127,16 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 	{
 		UE_LOG(LogTemp, Error, TEXT("The line trace has hit %s"), *HitActor->GetName());
 	}
+	return Hit;
+}
+
+
+// Called every frame
+void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	// If the physics handle is attached
+		// Move the object we are holding
 }
 

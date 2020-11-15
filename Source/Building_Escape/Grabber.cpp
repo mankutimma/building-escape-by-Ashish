@@ -41,10 +41,12 @@ void UGrabber::BeginPlay()
 	}
 
 	PlayerInputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
-	if (PlayerInputComponent)
+	if (PlayerInputComponent) // true even if input keys are not mentioned under access mappings in projectsettings->engine->input. wth?
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Player input component found on %s"), *GetOwner()->GetName());
-		PlayerInputComponent->BindAction("Grab", EInputEvent::IE_Pressed, this, &UGrabber::Grab);
+		PlayerInputComponent->BindAction("GrabAndRelease", EInputEvent::IE_Released, this, &UGrabber::Release);
+		PlayerInputComponent->BindAction("GrabAndRelease", EInputEvent::IE_Pressed, this, &UGrabber::Grab);
+		
 	}
 	else
 	{
@@ -56,6 +58,12 @@ void UGrabber::BeginPlay()
 void UGrabber::Grab()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grabber press"));
+}
+
+
+void UGrabber::Release()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grabber released"));
 }
 
 

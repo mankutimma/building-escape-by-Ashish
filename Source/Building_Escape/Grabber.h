@@ -34,4 +34,5 @@ private:
 	UInputComponent* PlayerInputComponent = nullptr;
 
 	void Grab();
+	void Release();
 };

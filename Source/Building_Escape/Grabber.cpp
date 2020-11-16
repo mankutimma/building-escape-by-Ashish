@@ -69,10 +69,36 @@ void UGrabber::Grab()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grabber press"));
 
-	// If we hit something, then attach the physics handle
-	// TODO: Attach physics handle
+	// TODO: refactor
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
+		OUT PlayerViewPointLocation,
+		OUT PlayerViewPointRotation
+	);
 
-	GetFirstPhysicsBodyInReach();
+	FVector LineTraceDirection = PlayerViewPointRotation.Vector();
+	FVector LineTraceEnd = PlayerViewPointLocation + LineTraceDirection * Reach;
+	//TODO: refactor ends
+
+	// If we (casted ray) hit something, then attach the physics handle. Attach physics handle = hold object
+	// TODO: Attach physics handle i.e., hold object
+
+	FHitResult HitResult = GetFirstPhysicsBodyInReach();
+
+	UPrimitiveComponent* GrabbedComponent = HitResult.GetComponent();
+
+	// If the casted ray hit something, then, HitResult.GetActor() will not be a null pointer and the code inside if codeblock will get executed
+	if (HitResult.GetActor())
+	{
+		// Attach physics handle, i.e., grab the object which was hit by the ray
+		PhysicsHandle->GrabComponentAtLocation(
+			GrabbedComponent,
+			NAME_None,
+			LineTraceEnd
+		);
+		UE_LOG(LogTemp, Warning, TEXT("You just grabbed %s"), *HitResult.GetActor()->GetName());
+	}
 }
 
 
@@ -81,6 +107,7 @@ void UGrabber::Release()
 	UE_LOG(LogTemp, Warning, TEXT("Grabber released"));
 
 	// TODO: remove/release the physics handle
+	PhysicsHandle->ReleaseComponent();
 }
 
 
@@ -136,7 +163,26 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	// TODO: refactor
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
+		OUT PlayerViewPointLocation,
+		OUT PlayerViewPointRotation
+	);
+
+	FVector LineTraceDirection = PlayerViewPointRotation.Vector();
+	FVector LineTraceEnd = PlayerViewPointLocation + LineTraceDirection * Reach;
+	//TODO: refactor ends
+
 	// If the physics handle is attached
 		// Move the object we are holding
+
+	// If the physics handle is attached, the pointer in the if condition will not be null and the if codeblock will be executed
+	if (PhysicsHandle->GrabbedComponent)
+	{
+		//Move the object we are holding using the physics handle
+		PhysicsHandle->SetTargetLocation(LineTraceEnd);
+	}
 }
 

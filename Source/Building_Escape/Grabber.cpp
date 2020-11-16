@@ -1,10 +1,10 @@
 // Copyright 2020 Ashish Jagadish, Inc. All Rights Reserved.
 
 
-#include "Engine/World.h"
-#include "GameFramework/PlayerController.h"
 #include "Grabber.h"
 #include "DrawDebugHelpers.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
 
 #define OUT
 
@@ -86,14 +86,14 @@ void UGrabber::Grab()
 
 	FHitResult HitResult = GetFirstPhysicsBodyInReach();
 
-	UPrimitiveComponent* GrabbedComponent = HitResult.GetComponent();
+	UPrimitiveComponent* ComponentToGrab = HitResult.GetComponent();
 
 	// If the casted ray hit something, then, HitResult.GetActor() will not be a null pointer and the code inside if codeblock will get executed
 	if (HitResult.GetActor())
 	{
 		// Attach physics handle, i.e., grab the object which was hit by the ray
 		PhysicsHandle->GrabComponentAtLocation(
-			GrabbedComponent,
+			ComponentToGrab,
 			NAME_None,
 			LineTraceEnd
 		);

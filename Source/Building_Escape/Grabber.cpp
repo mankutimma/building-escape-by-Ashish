@@ -15,39 +15,37 @@ UGrabber::UGrabber()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
-
 
 // Called when the game starts
 void UGrabber::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UE_LOG(LogTemp, Warning, TEXT("Grabber reporting to duty!"));
+	// UE_LOG(LogTemp, Warning, TEXT("Grabber reporting to duty!"));
 
 	FindPhysicsHandle();
 	SetupInputComponent();
 }
 
-
-void UGrabber::FindPhysicsHandle()
+// Called every frame
+void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	// Checking for physics handle component
-	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// Protection from null pointer
-	if (PhysicsHandle)
+	// Activate VisualizeDebugLine to see the line emerging from player's eyes
+	// VisualizeDebugLine();
+
+	// If the physics handle is attached
+		// Move the object we are holding
+
+	// If the physics handle is attached, the pointer in the if condition will not be a null pointer and the if codeblock will be executed
+	if (PhysicsHandle->GrabbedComponent)
 	{
-		// physics handle found
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("No physics handle component found on %s"), *GetOwner()->GetName());
+		//Move the object we are holding using the physics handle
+		PhysicsHandle->SetTargetLocation(GetPlayerReach());
 	}
 }
-
 
 void UGrabber::SetupInputComponent()
 {
@@ -64,12 +62,8 @@ void UGrabber::SetupInputComponent()
 	}
 }
 
-
-void UGrabber::Grab()
+FVector UGrabber::GetPlayerWorldPosition() const
 {
-	UE_LOG(LogTemp, Warning, TEXT("Grabber press"));
-
-	// TODO: refactor
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
@@ -77,112 +71,96 @@ void UGrabber::Grab()
 		OUT PlayerViewPointRotation
 	);
 
+	//UE_LOG(LogTemp, Warning, TEXT("Player location is %s and player rotation is %s"), *PlayerViewPointLocation.ToString(), *PlayerViewPointRotation.ToString());
+	return PlayerViewPointLocation;
+}
+
+FVector UGrabber::GetPlayerReach() const
+{
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
+		OUT PlayerViewPointLocation,
+		OUT PlayerViewPointRotation
+	);
+
+	//UE_LOG(LogTemp, Warning, TEXT("Player location is %s and player rotation is %s"), *PlayerViewPointLocation.ToString(), *PlayerViewPointRotation.ToString());
+
 	FVector LineTraceDirection = PlayerViewPointRotation.Vector();
 	FVector LineTraceEnd = PlayerViewPointLocation + LineTraceDirection * Reach;
-	//TODO: refactor ends
+	return LineTraceEnd;
+}
+
+FHitResult UGrabber::GetFirstPhysicsBodyInReach() const
+{
+	FHitResult Hit;
+
+	// Ray casting and return true for the first blocking hit
+	GetWorld()->LineTraceSingleByObjectType(
+		OUT Hit,
+		GetPlayerWorldPosition(),
+		GetPlayerReach(),
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
+		FCollisionQueryParams(FName(TEXT("")), false, GetOwner()) // ignore the owner because the cast out ray first hits the player
+		);
+
+	return Hit;
+}
+
+void UGrabber::FindPhysicsHandle()
+{
+	// Checking for physics handle component
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+
+	// Warning against a null pointer
+	if (PhysicsHandle == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No physics handle component found on %s"), *GetOwner()->GetName());
+	}
+}
+
+void UGrabber::Grab()
+{
+	// UE_LOG(LogTemp, Warning, TEXT("Grabber press"));
 
 	// If we (casted ray) hit something, then attach the physics handle. Attach physics handle = hold object
-	// TODO: Attach physics handle i.e., hold object
 
 	FHitResult HitResult = GetFirstPhysicsBodyInReach();
 
 	UPrimitiveComponent* ComponentToGrab = HitResult.GetComponent();
 
 	// If the casted ray hit something, then, HitResult.GetActor() will not be a null pointer and the code inside if codeblock will get executed
+	// Also, since HitResult.GetActor() is not a null pointer, *HitResult.GetActor()->GetName() will not lead to undefined behavior (UE4 crashing)
 	if (HitResult.GetActor())
 	{
 		// Attach physics handle, i.e., grab the object which was hit by the ray
 		PhysicsHandle->GrabComponentAtLocation(
 			ComponentToGrab,
 			NAME_None,
-			LineTraceEnd
+			GetPlayerReach()
 		);
 		UE_LOG(LogTemp, Warning, TEXT("You just grabbed %s"), *HitResult.GetActor()->GetName());
 	}
 }
 
-
 void UGrabber::Release()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Grabber released"));
+	// UE_LOG(LogTemp, Warning, TEXT("Grabber released"));
 
-	// TODO: remove/release the physics handle
+	// remove/release the physics handle i.e., drop/release the held object
 	PhysicsHandle->ReleaseComponent();
 }
 
-
-FHitResult UGrabber::GetFirstPhysicsBodyInReach() const
+void UGrabber::VisualizeDebugLine() const
 {
-	FVector PlayerViewPointLocation;
-	FRotator PlayerViewPointRotation;
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
-		OUT PlayerViewPointLocation,
-		OUT PlayerViewPointRotation
-	);
-	//UE_LOG(LogTemp, Warning, TEXT("Player location is %s and player rotation is %s"), *PlayerViewPointLocation.ToString(), *PlayerViewPointRotation.ToString());
-
-	FVector LineTraceDirection = PlayerViewPointRotation.Vector();
-	FVector LineTraceEnd =  PlayerViewPointLocation + LineTraceDirection * Reach;
-
 	DrawDebugLine(
 		GetWorld(),
-		PlayerViewPointLocation,
-		LineTraceEnd,
+		GetPlayerWorldPosition(),
+		GetPlayerReach(),
 		FColor(0, 0, 255),
 		false,
 		0.f,
 		0.f,
 		5.f
 	);
-
-	FHitResult Hit;
-
-	// Ray casting and return true for the first blocking hit
-	GetWorld()->LineTraceSingleByObjectType(
-		OUT Hit,
-		PlayerViewPointLocation,
-		LineTraceEnd,
-		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
-		FCollisionQueryParams(FName(TEXT("")), false, GetOwner()) // ignore the owner because the cast out ray first hits the player
-		);
-
-	// see what it hits
-	AActor* HitActor = Hit.GetActor();
-
-	// avoid undefined behavior (ue4 crashing) when doing *HitActor->GetName() due to null pointer 
-	if (HitActor)
-	{
-		UE_LOG(LogTemp, Error, TEXT("The line trace has hit %s"), *HitActor->GetName());
-	}
-	return Hit;
 }
-
-
-// Called every frame
-void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// TODO: refactor
-	FVector PlayerViewPointLocation;
-	FRotator PlayerViewPointRotation;
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
-		OUT PlayerViewPointLocation,
-		OUT PlayerViewPointRotation
-	);
-
-	FVector LineTraceDirection = PlayerViewPointRotation.Vector();
-	FVector LineTraceEnd = PlayerViewPointLocation + LineTraceDirection * Reach;
-	//TODO: refactor ends
-
-	// If the physics handle is attached
-		// Move the object we are holding
-
-	// If the physics handle is attached, the pointer in the if condition will not be null and the if codeblock will be executed
-	if (PhysicsHandle->GrabbedComponent)
-	{
-		//Move the object we are holding using the physics handle
-		PhysicsHandle->SetTargetLocation(LineTraceEnd);
-	}
-}
-

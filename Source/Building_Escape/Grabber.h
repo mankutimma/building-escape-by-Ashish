@@ -31,9 +31,14 @@ private:
 	UPhysicsHandleComponent* PhysicsHandle = nullptr;
 	UInputComponent* PlayerInputComponent = nullptr;
 
+	void SetupInputComponent();
+	FVector GetPlayerWorldPosition() const;
+	FVector GetPlayerReach() const;
+	FHitResult GetFirstPhysicsBodyInReach() const;
+	void FindPhysicsHandle();
 	void Grab();
 	void Release();
-	void FindPhysicsHandle();
-	void SetupInputComponent();
-	FHitResult GetFirstPhysicsBodyInReach() const;
+	void VisualizeDebugLine() const;
+
+
 };

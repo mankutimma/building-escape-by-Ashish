@@ -33,8 +33,7 @@ private:
 	float CurrentYaw;
 
 	UPROPERTY(EditAnywhere)
-		float MassToOpenDoor = 60.f;
-
+	float MassToOpenDoor = 60.f;
 	
 	float TargetYaw = 90.f;
 
@@ -50,8 +49,9 @@ private:
 	float DoorCloseSpeed = 2.f;
 
 	UPROPERTY(EditAnywhere)
-	ATriggerVolume* PressurePlate;
+	ATriggerVolume* PressurePlate = nullptr;
 
-	UPROPERTY(EditAnywhere)
-	AActor* ActorThatOpensDoor;
+	// use if only Player can open door by stepping on pressure plate
+	//UPROPERTY(EditAnywhere)
+	//AActor* ActorThatOpensDoor = nullptr;
 };

@@ -39,7 +39,8 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 	// If the physics handle is attached
 		// Move the object we are holding
 
-	// If the physics handle is attached, the pointer in the if condition will not be a null pointer and the if codeblock will be executed
+	if (!PhysicsHandle) { return; } // Pointer usage must be protected. This check is same as if (PhysicsHandle == nullptr).
+	// If the physics handle is attached, the pointer in the if condition will not be a null pointer and the below if codeblock will be executed
 	if (PhysicsHandle->GrabbedComponent)
 	{
 		//Move the object we are holding using the physics handle
@@ -113,7 +114,7 @@ void UGrabber::FindPhysicsHandle()
 	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
 
 	// Warning against a null pointer
-	if (PhysicsHandle == nullptr)
+	if (PhysicsHandle == nullptr) // if (!PhysicsHandle)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No physics handle component found on %s"), *GetOwner()->GetName());
 	}
@@ -129,17 +130,20 @@ void UGrabber::Grab()
 
 	UPrimitiveComponent* ComponentToGrab = HitResult.GetComponent();
 
+	AActor* ActorThatIsHit = HitResult.GetActor();
 	// If the casted ray hit something, then, HitResult.GetActor() will not be a null pointer and the code inside if codeblock will get executed
 	// Also, since HitResult.GetActor() is not a null pointer, *HitResult.GetActor()->GetName() will not lead to undefined behavior (UE4 crashing)
-	if (HitResult.GetActor())
+	if (ActorThatIsHit)
 	{
+		// Always check pointer before usage. This is pointer check: !PhysicsHandle. This (arrow i.e., ->) is usage: PhysicsHandle->GrabComponentAtLocation
+		if (!PhysicsHandle) { return; }
 		// Attach physics handle, i.e., grab the object which was hit by the ray
 		PhysicsHandle->GrabComponentAtLocation(
 			ComponentToGrab,
 			NAME_None,
 			GetPlayerReach()
 		);
-		UE_LOG(LogTemp, Warning, TEXT("You just grabbed %s"), *HitResult.GetActor()->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("You just grabbed %s"), *HitResult.GetActor()->GetName()); // *ActorThatIsHit->GetName()
 	}
 }
 
@@ -148,7 +152,15 @@ void UGrabber::Release()
 	// UE_LOG(LogTemp, Warning, TEXT("Grabber released"));
 
 	// remove/release the physics handle i.e., drop/release the held object
-	PhysicsHandle->ReleaseComponent();
+	if (PhysicsHandle)
+	{
+		PhysicsHandle->ReleaseComponent();
+	}
+	//else
+	//{
+	//  // Only check as above in if statement above is enough. No need to log here since the log is already done in BeginPlay when FindPhysicsHandle() is called
+	//	UE_LOG(LogTemp, Error, TEXT("No physics handle found on %s to release object"), *GetOwner()->GetName()); 
+	//}
 }
 
 void UGrabber::VisualizeDebugLine() const

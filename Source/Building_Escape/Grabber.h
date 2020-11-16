@@ -28,7 +28,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	float Reach = 175.f;
 
-	UPhysicsHandleComponent* PhysicsHandle = nullptr;
+	UPhysicsHandleComponent* PhysicsHandle = nullptr; // Pointer should never remain uninitialized. Either initialize it to something meaningful or to nullptr
 	UInputComponent* PlayerInputComponent = nullptr;
 
 	void SetupInputComponent();
@@ -39,6 +39,4 @@ private:
 	void Grab();
 	void Release();
 	void VisualizeDebugLine() const;
-
-
 };

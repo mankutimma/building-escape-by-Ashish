@@ -33,12 +33,13 @@ void UOpenDoor::BeginPlay()
 	CurrentYaw = InitialYaw;
 	TargetYaw += InitialYaw;
 
-	if (!PressurePlate)
+	if (!PressurePlate) // same as if (PressurePlate == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s actor has the OpenDoor component on it, but no pressure plate set!"), *GetOwner()->GetName())
 	}
 
-	ActorThatOpensDoor = GetWorld()->GetFirstPlayerController()->GetPawn();
+	// use if only Player can open door by stepping on pressure plate
+	//ActorThatOpensDoor = GetWorld()->GetFirstPlayerController()->GetPawn();
 }
 
 
@@ -51,7 +52,7 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	//UE_LOG(LogTemp, Warning, TEXT("Current yaw (of rotation) of %s is: %f"), *GetOwner()->GetName(), CurrentYaw);
 
 	// checking if PressurePlate is true helps to avoid unreal from crashing due to null pointer during the operarion PressurePlate->IsOverlappingActor(ActorThatOpensDoor)
-	//if (PressurePlate && PressurePlate->IsOverlappingActor(ActorThatOpensDoor))
+	//if (PressurePlate && PressurePlate->IsOverlappingActor(ActorThatOpensDoor)) // use if only Player can open door by stepping on pressure plate
 	if (TotalMassOfActors() > MassToOpenDoor)
 	{
 		OpenDoor(DeltaTime);
@@ -77,6 +78,8 @@ void UOpenDoor::OpenDoor(const float& RefDeltaTime)
 void UOpenDoor::CloseDoor(const float& RefDeltaTime)
 {
 	CurrentYaw = FMath::Lerp(CurrentYaw, InitialYaw, RefDeltaTime * DoorCloseSpeed);
+	// no need to check if the pointers GetOwner() or GetWorld() are nullptrs before applying the -> operator since the entire code here (component OpenDoor) resides within the 
+	// owner (SM_Door). Also, GetWorld() is the level we are in and if it didn't exist, none of this component code would exist either.
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
 	DoorRotation.Yaw = CurrentYaw;
 	GetOwner()->SetActorRotation(DoorRotation);
@@ -88,14 +91,18 @@ float UOpenDoor::TotalMassOfActors() const
 
 	// Find all overlapping actors
 	TArray<AActor*> OverlappingActors;
+
+	if (!PressurePlate) { return TotalMass; } // early exit
 	PressurePlate->GetOverlappingActors(OverlappingActors);
 
 	// Add up their masses
 	for (AActor* OverlappingActor : OverlappingActors)
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("%s is on pressure plate"), *OverlappingActor->GetName());
-		TotalMass += OverlappingActor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+		if (OverlappingActor) // This check is unnecessary and can be removed since PressurePlate->GetOverlappingActors will return pointers to actors and not nullptrs
+		{
+			TotalMass += OverlappingActor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+		}
 	}
-
 	return TotalMass;
 }

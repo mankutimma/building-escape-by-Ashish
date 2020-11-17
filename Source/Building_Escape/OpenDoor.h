@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
+#include "Components/AudioComponent.h"
 #include "CoreMinimal.h"
 #include "Engine/TriggerVolume.h"
 #include "OpenDoor.generated.h"
@@ -27,6 +28,8 @@ public:
 	void OpenDoor(const float& RefDeltaTime);
 	void CloseDoor(const float& RefDeltaTime);
 	float TotalMassOfActors() const;
+	void FindAudioComponent();
+	void FindPressurePlate();
 
 private:
 	float InitialYaw;
@@ -54,4 +57,7 @@ private:
 	// use if only Player can open door by stepping on pressure plate
 	//UPROPERTY(EditAnywhere)
 	//AActor* ActorThatOpensDoor = nullptr;
+
+	UPROPERTY()
+	UAudioComponent* AudioComponent = nullptr;
 };

@@ -33,14 +33,30 @@ void UOpenDoor::BeginPlay()
 	CurrentYaw = InitialYaw;
 	TargetYaw += InitialYaw;
 
-	if (!PressurePlate) // same as if (PressurePlate == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("%s actor has the OpenDoor component on it, but no pressure plate set!"), *GetOwner()->GetName())
-	}
+	FindPressurePlate();
+	FindAudioComponent();
 
 	// use if only Player can open door by stepping on pressure plate
 	//ActorThatOpensDoor = GetWorld()->GetFirstPlayerController()->GetPawn();
 }
+
+void UOpenDoor::FindPressurePlate()
+{
+	if (!PressurePlate) // same as if (PressurePlate == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s actor has the OpenDoor component on it, but no pressure plate set!"), *GetOwner()->GetName())
+	}
+}
+
+void UOpenDoor::FindAudioComponent()
+{
+	AudioComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+	if (!AudioComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No audio component found on %s"), *GetOwner()->GetName());
+	}
+}
+
 
 
 // Called every frame

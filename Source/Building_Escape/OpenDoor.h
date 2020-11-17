@@ -60,4 +60,8 @@ private:
 
 	UPROPERTY()
 	UAudioComponent* AudioComponent = nullptr;
+
+	// Tracks whether sound has been played. Has been played measn true
+	bool OpenDoorSound = false;
+	bool CloseDoorSound = true;
 };

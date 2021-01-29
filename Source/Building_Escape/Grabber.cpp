@@ -40,11 +40,24 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 		// Move the object we are holding
 
 	if (!PhysicsHandle) { return; } // Pointer usage must be protected. This check is same as if (PhysicsHandle == nullptr).
-	// If the physics handle is attached, the pointer in the if condition will not be a null pointer and the below if codeblock will be executed
+	// If the physics handle is present on the owner actor, the pointer in the above if condition will not be a null pointer and the below if codeblock will be 
+	// executed if physics handle has grabbed a physics object
 	if (PhysicsHandle->GrabbedComponent)
 	{
 		//Move the object we are holding using the physics handle
 		PhysicsHandle->SetTargetLocation(GetPlayerReach());
+	}
+}
+
+void UGrabber::FindPhysicsHandle()
+{
+	// Checking for physics handle component
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+
+	// Warning against a null pointer
+	if (PhysicsHandle == nullptr) // if (!PhysicsHandle)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No physics handle component found on %s"), *GetOwner()->GetName());
 	}
 }
 
@@ -106,18 +119,6 @@ FHitResult UGrabber::GetFirstPhysicsBodyInReach() const
 		);
 
 	return Hit;
-}
-
-void UGrabber::FindPhysicsHandle()
-{
-	// Checking for physics handle component
-	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
-
-	// Warning against a null pointer
-	if (PhysicsHandle == nullptr) // if (!PhysicsHandle)
-	{
-		UE_LOG(LogTemp, Error, TEXT("No physics handle component found on %s"), *GetOwner()->GetName());
-	}
 }
 
 void UGrabber::Grab()
